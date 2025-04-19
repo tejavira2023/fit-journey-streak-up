@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Weight, Meditation, Activity, ArrowLeft, Yoga } from "lucide-react";
+import { Weight, Brain, Activity, ArrowLeft, HeartPulse } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FitnessCategory from "@/components/fitness/FitnessCategory";
 import DifficultySelector from "@/components/fitness/DifficultySelector";
@@ -28,7 +28,7 @@ const FitnessCategories = () => {
     {
       name: "Meditation",
       description: "Find peace and reduce stress with guided meditations",
-      icon: Meditation,
+      icon: Brain,
     },
     {
       name: "Gaining Weight",
@@ -38,7 +38,7 @@ const FitnessCategories = () => {
     {
       name: "Yoga",
       description: "Improve flexibility, balance and mental clarity",
-      icon: Yoga,
+      icon: HeartPulse,
     },
   ];
   
