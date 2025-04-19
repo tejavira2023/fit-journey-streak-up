@@ -12,6 +12,7 @@ import FitnessCategories from "./pages/FitnessCategories";
 import FitnessProgram from "./pages/FitnessProgram";
 import LevelDetail from "./pages/LevelDetail";
 import Consult from "./pages/Consult";
+import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/fitness/:category/:difficulty" element={<FitnessProgram />} />
           <Route path="/fitness/:category/:difficulty/level/:levelId" element={<LevelDetail />} />
           <Route path="/consult" element={<Consult />} />
+          <Route path="/account" element={<Account />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

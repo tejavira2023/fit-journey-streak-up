@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Award, Calendar, LogOut, ArrowRight } from "lucide-react";
+import { Award, Calendar, LogOut, ArrowRight, User } from "lucide-react";
 import StreakDisplay from "@/components/fitness/StreakDisplay";
 import RewardCard from "@/components/fitness/RewardCard";
 import ConsultCard from "@/components/fitness/ConsultCard";
@@ -39,9 +39,14 @@ const Home = () => {
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-fitness-primary">FitJourney</h1>
-          <Button variant="ghost" size="icon" onClick={handleLogout}>
-            <LogOut className="h-5 w-5" />
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="icon" onClick={() => navigate("/account")}>
+              <User className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleLogout}>
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </header>
 
