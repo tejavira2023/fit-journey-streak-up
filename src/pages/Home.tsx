@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +5,7 @@ import { Award, Calendar, LogOut, ArrowRight, User } from "lucide-react";
 import StreakDisplay from "@/components/fitness/StreakDisplay";
 import RewardCard from "@/components/fitness/RewardCard";
 import ConsultCard from "@/components/fitness/ConsultCard";
+import FloatingChatButton from "@/components/fitness/FloatingChatButton";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -15,14 +15,12 @@ const Home = () => {
   });
 
   useEffect(() => {
-    // Check if user is authenticated
     const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
     if (!isAuthenticated) {
       navigate("/login");
       return;
     }
 
-    // Get user data from localStorage
     const storedUserData = localStorage.getItem("userData");
     if (storedUserData) {
       setUserData(JSON.parse(storedUserData));
@@ -102,6 +100,8 @@ const Home = () => {
           </div>
         </div>
       </main>
+
+      <FloatingChatButton />
     </div>
   );
 };
