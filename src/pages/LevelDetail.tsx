@@ -4,11 +4,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle } from "lucide-react";
 import QuizComponent from "@/components/fitness/QuizComponent";
+import { useToast } from "@/hooks/use-toast";
+import { Coins } from "lucide-react";
 
 const LevelDetail = () => {
   const { category, difficulty, levelId } = useParams();
   const navigate = useNavigate();
   const [levelCompleted, setLevelCompleted] = useState(false);
+  const { toast } = useToast();
   
   useEffect(() => {
     // Check if user is authenticated
@@ -27,6 +30,30 @@ const LevelDetail = () => {
 
   const handleLevelComplete = () => {
     setLevelCompleted(true);
+    
+    // Get current coins from localStorage
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    const currentCoins = userData.coins || 0;
+    
+    // Add 5 coins for completing the exercise
+    const updatedUserData = {
+      ...userData,
+      coins: currentCoins + 5
+    };
+    
+    // Save updated coins to localStorage
+    localStorage.setItem("userData", JSON.stringify(updatedUserData));
+    
+    // Show reward notification
+    toast({
+      title: "Exercise Completed!",
+      description: (
+        <div className="flex items-center gap-2">
+          <Coins className="h-4 w-4 text-yellow-400" />
+          <span>You earned 5 coins!</span>
+        </div>
+      )
+    });
   };
 
   if (!category || !difficulty || !levelId) {

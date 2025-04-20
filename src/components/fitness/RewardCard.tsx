@@ -1,7 +1,8 @@
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Award } from "lucide-react";
+import { Award, Coins } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type RewardCardProps = {
   title: string;
@@ -11,14 +12,23 @@ type RewardCardProps = {
 };
 
 const RewardCard = ({ title, description, progress, total }: RewardCardProps) => {
+  const [coins, setCoins] = useState(0);
   const percentage = (progress / total) * 100;
+
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    setCoins(userData.coins || 0);
+  }, []);
 
   return (
     <Card className="w-full card-hover animate-fade-in">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle className="text-lg">{title}</CardTitle>
-          <Award className="h-5 w-5 text-fitness-primary icon-spin" />
+          <div className="flex items-center gap-2">
+            <Coins className="h-5 w-5 text-yellow-400" />
+            <span className="font-bold">{coins}</span>
+          </div>
         </div>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
