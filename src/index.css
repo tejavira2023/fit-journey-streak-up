@@ -111,4 +111,12 @@
   .streak-badge-success {
     @apply bg-fitness-success text-white hover:bg-fitness-success/90;
   }
+
+  .animate-pulse-scale {
+    @apply transition-transform duration-300 hover:scale-105 active:scale-95;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-lg;
+  }
 }
