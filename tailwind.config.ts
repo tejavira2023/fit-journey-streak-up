@@ -63,9 +63,9 @@ export default {
           ring: 'hsl(var(--sidebar-ring))'
         },
         fitness: {
-          primary: '#D6BCFA',
-          secondary: '#9F7AEA',
-          accent: '#E6DDFF',
+          primary: '#8B5CF6',
+          secondary: '#7E69AB',
+          accent: '#6E59A5',
           success: '#2EC4B6',
           warning: '#FF9F1C',
           danger: '#E71D36',
