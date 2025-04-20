@@ -14,18 +14,18 @@ const RewardCard = ({ title, description, progress, total }: RewardCardProps) =>
   const percentage = (progress / total) * 100;
 
   return (
-    <Card className="w-full">
+    <Card className="w-full card-hover animate-fade-in">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle className="text-lg">{title}</CardTitle>
-          <Award className="h-5 w-5 text-fitness-primary" />
+          <Award className="h-5 w-5 text-fitness-primary icon-spin" />
         </div>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+        <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2 overflow-hidden">
           <div 
-            className="bg-fitness-primary h-2.5 rounded-full" 
+            className="bg-fitness-primary h-2.5 rounded-full transition-all duration-1000 ease-out"
             style={{ width: `${percentage}%` }}
           ></div>
         </div>
@@ -36,11 +36,18 @@ const RewardCard = ({ title, description, progress, total }: RewardCardProps) =>
       </CardContent>
       <CardFooter>
         {progress >= total ? (
-          <Button variant="outline" className="w-full border-fitness-primary text-fitness-primary hover:bg-fitness-primary/10">
+          <Button 
+            variant="outline" 
+            className="w-full border-fitness-primary text-fitness-primary hover:bg-fitness-primary/10 button-bounce"
+          >
             Claim Reward
           </Button>
         ) : (
-          <Button variant="outline" className="w-full" disabled>
+          <Button 
+            variant="outline" 
+            className="w-full hover-lift" 
+            disabled
+          >
             Keep Going
           </Button>
         )}

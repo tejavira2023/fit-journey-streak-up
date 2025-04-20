@@ -97,7 +97,7 @@
 
 @layer components {
   .fitness-card {
-    @apply bg-white rounded-xl shadow-md p-5 transition-all duration-300 hover:shadow-lg flex flex-col items-center justify-center text-center gap-3 cursor-pointer border-2 border-transparent hover:border-fitness-primary;
+    @apply bg-white rounded-xl shadow-md p-5 transition-all duration-300 hover:shadow-lg flex flex-col items-center justify-center text-center gap-3 cursor-pointer border-2 border-transparent hover:border-fitness-primary animate-fade-in hover:scale-105;
   }
 
   .streak-badge {
@@ -112,11 +112,19 @@
     @apply bg-fitness-success text-white hover:bg-fitness-success/90;
   }
 
-  .animate-pulse-scale {
-    @apply transition-transform duration-300 hover:scale-105 active:scale-95;
+  .card-hover {
+    @apply transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-lg;
   }
 
-  .card-hover {
-    @apply transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-lg;
+  .button-bounce {
+    @apply transition-transform active:scale-95 hover:scale-105;
+  }
+
+  .icon-spin {
+    @apply transition-transform hover:rotate-180 duration-700;
+  }
+
+  .hover-lift {
+    @apply transition-all duration-300 ease-out hover:-translate-y-1;
   }
 }
