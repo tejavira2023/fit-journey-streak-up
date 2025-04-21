@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,6 +13,7 @@ import LevelDetail from "./pages/LevelDetail";
 import Consult from "./pages/Consult";
 import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
+import ConsultationForm from "./pages/ConsultationForm";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +33,7 @@ const App = () => (
           <Route path="/fitness/:category/:difficulty/level/:levelId" element={<LevelDetail />} />
           <Route path="/consult" element={<Consult />} />
           <Route path="/account" element={<Account />} />
+          <Route path="/consultation-form" element={<ConsultationForm />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

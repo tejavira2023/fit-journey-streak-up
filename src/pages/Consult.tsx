@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,16 +9,16 @@ const Consult = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Check if user is authenticated
     const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
     if (!isAuthenticated) {
       navigate("/login");
     }
   }, [navigate]);
   
-  const handleSchedule = () => {
-    toast.success("Consultation request sent successfully!");
-    navigate("/home");
+  const handleSchedule = (consultantName: string) => {
+    navigate("/consultation-form", { 
+      state: { consultantName } 
+    });
   };
   
   const consultants = [
@@ -90,7 +89,7 @@ const Consult = () => {
               </CardContent>
               <CardFooter>
                 <Button 
-                  onClick={handleSchedule}
+                  onClick={() => handleSchedule(consultant.name)}
                   className="w-full bg-fitness-primary hover:bg-fitness-primary/90"
                 >
                   Schedule Session
