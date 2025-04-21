@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { CircleIcon, CheckCircle, Lock } from "lucide-react";
@@ -15,7 +16,6 @@ type LevelProgressionProps = {
 };
 
 const getLevels = (category: string, difficulty: string) => {
-  // In a real app, this would be fetched from a backend
   return [
     {
       id: 1,
@@ -23,23 +23,25 @@ const getLevels = (category: string, difficulty: string) => {
       description: "Complete this exercise once per day",
       duration: "15 min",
       isDaily: true,
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Placeholder
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     },
     {
       id: 2,
       title: `${difficulty} ${category} - Level 2`,
-      description: "Building on fundamentals",
+      description: "Advanced techniques - Available tomorrow",
       duration: "20 min",
       isDaily: false,
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Placeholder
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      locked: true
     },
     {
       id: 3,
       title: `${difficulty} ${category} - Level 3`,
-      description: "Advanced techniques",
+      description: "Expert techniques - Available later",
       duration: "25 min",
       isDaily: false,
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Placeholder
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      locked: true
     },
   ];
 };
@@ -49,21 +51,23 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
   const { toast } = useToast();
   const [levels, setLevels] = useState<any[]>([]);
   const [completedLevels, setCompletedLevels] = useState<string[]>([]);
-  const [lastActivityDate, setLastActivityDate] = useState<string | null>(null);
+  const [lastActivityDates, setLastActivityDates] = useState<Record<string, string>>({});
   const [openLevel, setOpenLevel] = useState<number | null>(null);
 
   useEffect(() => {
-    // Get levels for this category and difficulty
     setLevels(getLevels(category, difficulty));
     
     // Get user data from localStorage
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
     setCompletedLevels(userData.completedLevels || []);
-    setLastActivityDate(userData.lastActivity);
+    setLastActivityDates(userData.lastActivityDates || {});
   }, [category, difficulty]);
 
-  const canStartNewLevel = (isDaily: boolean) => {
-    if (!lastActivityDate || !isDaily) return true;
+  const canStartLevel = (levelId: number, category: string) => {
+    if (levelId !== 1) return false; // Only level 1 is available
+    
+    const lastActivityDate = lastActivityDates[category];
+    if (!lastActivityDate) return true;
     
     const today = new Date().toDateString();
     const lastActivity = new Date(lastActivityDate).toDateString();
@@ -71,16 +75,30 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
     return today !== lastActivity;
   };
 
-  const startLevel = (levelId: number, isDaily: boolean) => {
-    if (!canStartNewLevel(isDaily)) {
+  const startLevel = (levelId: number) => {
+    if (!canStartLevel(levelId, category)) {
       toast({
         title: "Daily Exercise Limit Reached",
-        description: "You've already completed today's exercise. Come back tomorrow!",
+        description: `You've already completed today's ${category} exercise. Try a different category or come back tomorrow!`,
         variant: "destructive",
       });
       return;
     }
-    // Navigate to the level detail page
+    
+    // Update last activity date for this category
+    const newLastActivityDates = {
+      ...lastActivityDates,
+      [category]: new Date().toISOString()
+    };
+    
+    // Update localStorage
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    userData.lastActivityDates = newLastActivityDates;
+    localStorage.setItem("userData", JSON.stringify(userData));
+    
+    setLastActivityDates(newLastActivityDates);
+    
+    // Navigate to the level
     navigate(`/fitness/${category.toLowerCase()}/${difficulty.toLowerCase()}/level/${levelId}`);
   };
 
@@ -88,21 +106,15 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
     return completedLevels.includes(`${category}-${difficulty}-${levelId}`);
   };
 
-  const isLevelLocked = (levelId: number, index: number) => {
-    if (index === 0) return false;
-    return !isLevelCompleted(levels[index - 1].id);
-  };
-
-  const getPositionClass = (index: number, totalLevels: number): string => {
-    // Creates a zig-zag path that works well regardless of the number of levels
+  const getPositionClass = (index: number): string => {
     switch (index % 4) {
-      case 0: // Left side
+      case 0:
         return `top-[${10 + (index * 25)}%] left-[25%]`;
-      case 1: // Right side
+      case 1:
         return `top-[${10 + (index * 25)}%] right-[25%]`;
-      case 2: // Middle-left
+      case 2:
         return `top-[${10 + (index * 25)}%] left-[40%]`;
-      case 3: // Middle-right
+      case 3:
         return `top-[${10 + (index * 25)}%] right-[40%]`;
       default:
         return '';
@@ -133,7 +145,7 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
               onOpenChange={() => setOpenLevel(openLevel === level.id ? null : level.id)}
             >
               <div 
-                className={`absolute transition-all duration-300 ${getPositionClass(index, levels.length)}`}
+                className={`absolute transition-all duration-300 ${getPositionClass(index)}`}
               >
                 <CollapsibleTrigger asChild>
                   <div className="relative">
@@ -142,15 +154,15 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
                         w-16 h-16 rounded-full relative z-10
                         ${isLevelCompleted(level.id)
                           ? "bg-green-500 hover:bg-green-600"
-                          : isLevelLocked(level.id, index)
+                          : level.locked
                           ? "bg-gray-400 cursor-not-allowed"
                           : "bg-blue-500 hover:bg-blue-600"}
                         transform hover:scale-110 transition-transform
                         border-4 border-white shadow-lg
                       `}
-                      disabled={isLevelLocked(level.id, index)}
+                      disabled={level.locked}
                     >
-                      {isLevelLocked(level.id, index) ? (
+                      {level.locked ? (
                         <Lock className="h-6 w-6 text-white" />
                       ) : isLevelCompleted(level.id) ? (
                         <CheckCircle className="h-6 w-6 text-white" />
@@ -158,7 +170,7 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
                         <span className="text-xl font-bold text-white">{level.id}</span>
                       )}
                     </Button>
-                    {level.isDaily && (
+                    {level.id === 1 && (
                       <div className="absolute -top-3 -right-3 bg-yellow-400 rounded-full px-2 py-1 text-xs font-bold text-white">
                         Daily
                       </div>
@@ -171,16 +183,15 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
                     <h3 className="font-bold mb-2">{level.title}</h3>
                     <p className="text-sm text-gray-600 mb-3">{level.description}</p>
                     <p className="text-xs text-gray-500 mb-3">{level.duration}</p>
-                    <Button
-                      className="w-full bg-fitness-primary hover:bg-fitness-primary/90"
-                      onClick={() => startLevel(level.id, level.isDaily)}
-                      disabled={
-                        isLevelLocked(level.id, index) || 
-                        (!canStartNewLevel(level.isDaily) && !isLevelCompleted(level.id))
-                      }
-                    >
-                      {isLevelCompleted(level.id) ? "Review" : "Start"}
-                    </Button>
+                    {level.id === 1 && (
+                      <Button
+                        className="w-full bg-fitness-primary hover:bg-fitness-primary/90"
+                        onClick={() => startLevel(level.id)}
+                        disabled={!canStartLevel(level.id, category)}
+                      >
+                        {isLevelCompleted(level.id) ? "Review" : "Start"}
+                      </Button>
+                    )}
                   </div>
                 </CollapsibleContent>
               </div>
