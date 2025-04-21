@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { CircleIcon, CheckCircle, Lock } from "lucide-react";
@@ -8,6 +7,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { useToast } from "@/hooks/use-toast";
 
 type LevelProgressionProps = {
   category: string;
@@ -19,9 +19,10 @@ const getLevels = (category: string, difficulty: string) => {
   return [
     {
       id: 1,
-      title: `${difficulty} ${category} - Level 1`,
-      description: "Introduction to basic techniques",
+      title: `Daily ${category} Exercise`,
+      description: "Complete this exercise once per day",
       duration: "15 min",
+      isDaily: true,
       videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Placeholder
     },
     {
@@ -29,6 +30,7 @@ const getLevels = (category: string, difficulty: string) => {
       title: `${difficulty} ${category} - Level 2`,
       description: "Building on fundamentals",
       duration: "20 min",
+      isDaily: false,
       videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Placeholder
     },
     {
@@ -36,6 +38,7 @@ const getLevels = (category: string, difficulty: string) => {
       title: `${difficulty} ${category} - Level 3`,
       description: "Advanced techniques",
       duration: "25 min",
+      isDaily: false,
       videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Placeholder
     },
   ];
@@ -43,6 +46,7 @@ const getLevels = (category: string, difficulty: string) => {
 
 const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [levels, setLevels] = useState<any[]>([]);
   const [completedLevels, setCompletedLevels] = useState<string[]>([]);
   const [lastActivityDate, setLastActivityDate] = useState<string | null>(null);
@@ -58,8 +62,8 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
     setLastActivityDate(userData.lastActivity);
   }, [category, difficulty]);
 
-  const canStartNewLevel = () => {
-    if (!lastActivityDate) return true;
+  const canStartNewLevel = (isDaily: boolean) => {
+    if (!lastActivityDate || !isDaily) return true;
     
     const today = new Date().toDateString();
     const lastActivity = new Date(lastActivityDate).toDateString();
@@ -67,7 +71,15 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
     return today !== lastActivity;
   };
 
-  const startLevel = (levelId: number) => {
+  const startLevel = (levelId: number, isDaily: boolean) => {
+    if (!canStartNewLevel(isDaily)) {
+      toast({
+        title: "Daily Exercise Limit Reached",
+        description: "You've already completed today's exercise. Come back tomorrow!",
+        variant: "destructive",
+      });
+      return;
+    }
     // Navigate to the level detail page
     navigate(`/fitness/${category.toLowerCase()}/${difficulty.toLowerCase()}/level/${levelId}`);
   };
@@ -79,6 +91,22 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
   const isLevelLocked = (levelId: number, index: number) => {
     if (index === 0) return false;
     return !isLevelCompleted(levels[index - 1].id);
+  };
+
+  const getPositionClass = (index: number, totalLevels: number): string => {
+    // Creates a zig-zag path that works well regardless of the number of levels
+    switch (index % 4) {
+      case 0: // Left side
+        return `top-[${10 + (index * 25)}%] left-[25%]`;
+      case 1: // Right side
+        return `top-[${10 + (index * 25)}%] right-[25%]`;
+      case 2: // Middle-left
+        return `top-[${10 + (index * 25)}%] left-[40%]`;
+      case 3: // Middle-right
+        return `top-[${10 + (index * 25)}%] right-[40%]`;
+      default:
+        return '';
+    }
   };
 
   return (
@@ -95,7 +123,6 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
       </h2>
       
       <div className="relative flex flex-col items-center">
-        {/* Path connecting the levels */}
         <div className="absolute z-0 w-[4px] bg-gray-300 h-[70%] left-1/2 transform -translate-x-1/2 top-[15%]"></div>
         
         <div className="relative w-full h-[500px]">
@@ -131,18 +158,9 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
                         <span className="text-xl font-bold text-white">{level.id}</span>
                       )}
                     </Button>
-                    {isLevelCompleted(level.id) && (
-                      <div className="absolute -top-3 -right-3">
-                        <div className="flex">
-                          {[...Array(3)].map((_, i) => (
-                            <span
-                              key={i}
-                              className="text-yellow-400 text-lg"
-                            >
-                              ★
-                            </span>
-                          ))}
-                        </div>
+                    {level.isDaily && (
+                      <div className="absolute -top-3 -right-3 bg-yellow-400 rounded-full px-2 py-1 text-xs font-bold text-white">
+                        Daily
                       </div>
                     )}
                   </div>
@@ -155,10 +173,10 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
                     <p className="text-xs text-gray-500 mb-3">{level.duration}</p>
                     <Button
                       className="w-full bg-fitness-primary hover:bg-fitness-primary/90"
-                      onClick={() => startLevel(level.id)}
+                      onClick={() => startLevel(level.id, level.isDaily)}
                       disabled={
                         isLevelLocked(level.id, index) || 
-                        (!canStartNewLevel() && !isLevelCompleted(level.id))
+                        (!canStartNewLevel(level.isDaily) && !isLevelCompleted(level.id))
                       }
                     >
                       {isLevelCompleted(level.id) ? "Review" : "Start"}
@@ -172,23 +190,6 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
       </div>
     </div>
   );
-};
-
-// Helper function to position levels on a winding path
-const getPositionClass = (index: number, totalLevels: number): string => {
-  // Creates a zig-zag path that works well regardless of the number of levels
-  switch (index % 4) {
-    case 0: // Left side
-      return `top-[${10 + (index * 25)}%] left-[25%]`;
-    case 1: // Right side
-      return `top-[${10 + (index * 25)}%] right-[25%]`;
-    case 2: // Middle-left
-      return `top-[${10 + (index * 25)}%] left-[40%]`;
-    case 3: // Middle-right
-      return `top-[${10 + (index * 25)}%] right-[40%]`;
-    default:
-      return '';
-  }
 };
 
 export default LevelProgression;
