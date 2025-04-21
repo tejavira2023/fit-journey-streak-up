@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { CircleIcon } from "lucide-react";
+import { CircleIcon, CheckCircle, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Collapsible,
@@ -93,84 +94,101 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
         {difficulty} {category} Journey
       </h2>
       
-      <div className="relative">
-        {levels.map((level, index) => (
-          <Collapsible
-            key={level.id}
-            open={openLevel === level.id}
-            onOpenChange={() => setOpenLevel(openLevel === level.id ? null : level.id)}
-          >
-            <div 
-              className={`absolute transition-all duration-300 ${getPositionClass(index)}`}
+      <div className="relative flex flex-col items-center">
+        {/* Path connecting the levels */}
+        <div className="absolute z-0 w-[4px] bg-gray-300 h-[70%] left-1/2 transform -translate-x-1/2 top-[15%]"></div>
+        
+        <div className="relative w-full h-[500px]">
+          {levels.map((level, index) => (
+            <Collapsible
+              key={level.id}
+              open={openLevel === level.id}
+              onOpenChange={() => setOpenLevel(openLevel === level.id ? null : level.id)}
             >
-              <CollapsibleTrigger asChild>
-                <Button
-                  className={`
-                    w-16 h-16 rounded-full relative 
-                    ${isLevelCompleted(level.id)
-                      ? "bg-green-500 hover:bg-green-600"
-                      : isLevelLocked(level.id, index)
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-blue-500 hover:bg-blue-600"}
-                    transform hover:scale-110 transition-transform
-                    border-4 border-white shadow-lg
-                  `}
-                  disabled={isLevelLocked(level.id, index)}
-                >
-                  <span className="text-xl font-bold text-white">{level.id}</span>
-                  {isLevelCompleted(level.id) && (
-                    <div className="absolute -top-1 -right-1">
-                      <div className="flex">
-                        {[...Array(3)].map((_, i) => (
-                          <span
-                            key={i}
-                            className="text-yellow-400 text-lg"
-                          >
-                            ★
-                          </span>
-                        ))}
+              <div 
+                className={`absolute transition-all duration-300 ${getPositionClass(index, levels.length)}`}
+              >
+                <CollapsibleTrigger asChild>
+                  <div className="relative">
+                    <Button
+                      className={`
+                        w-16 h-16 rounded-full relative z-10
+                        ${isLevelCompleted(level.id)
+                          ? "bg-green-500 hover:bg-green-600"
+                          : isLevelLocked(level.id, index)
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-blue-500 hover:bg-blue-600"}
+                        transform hover:scale-110 transition-transform
+                        border-4 border-white shadow-lg
+                      `}
+                      disabled={isLevelLocked(level.id, index)}
+                    >
+                      {isLevelLocked(level.id, index) ? (
+                        <Lock className="h-6 w-6 text-white" />
+                      ) : isLevelCompleted(level.id) ? (
+                        <CheckCircle className="h-6 w-6 text-white" />
+                      ) : (
+                        <span className="text-xl font-bold text-white">{level.id}</span>
+                      )}
+                    </Button>
+                    {isLevelCompleted(level.id) && (
+                      <div className="absolute -top-3 -right-3">
+                        <div className="flex">
+                          {[...Array(3)].map((_, i) => (
+                            <span
+                              key={i}
+                              className="text-yellow-400 text-lg"
+                            >
+                              ★
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </Button>
-              </CollapsibleTrigger>
-              
-              <CollapsibleContent>
-                <div className="absolute z-10 mt-4 p-4 bg-white rounded-lg shadow-xl w-64 transform -translate-x-1/2 left-1/2">
-                  <h3 className="font-bold mb-2">{level.title}</h3>
-                  <p className="text-sm text-gray-600 mb-3">{level.description}</p>
-                  <p className="text-xs text-gray-500 mb-3">{level.duration}</p>
-                  <Button
-                    className="w-full bg-fitness-primary hover:bg-fitness-primary/90"
-                    onClick={() => startLevel(level.id)}
-                    disabled={
-                      isLevelLocked(level.id, index) || 
-                      (!canStartNewLevel() && !isLevelCompleted(level.id))
-                    }
-                  >
-                    {isLevelCompleted(level.id) ? "Review" : "Start"}
-                  </Button>
-                </div>
-              </CollapsibleContent>
-            </div>
-          </Collapsible>
-        ))}
+                    )}
+                  </div>
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent>
+                  <div className="absolute z-20 mt-4 p-4 bg-white rounded-lg shadow-xl w-64 transform -translate-x-1/2 left-1/2">
+                    <h3 className="font-bold mb-2">{level.title}</h3>
+                    <p className="text-sm text-gray-600 mb-3">{level.description}</p>
+                    <p className="text-xs text-gray-500 mb-3">{level.duration}</p>
+                    <Button
+                      className="w-full bg-fitness-primary hover:bg-fitness-primary/90"
+                      onClick={() => startLevel(level.id)}
+                      disabled={
+                        isLevelLocked(level.id, index) || 
+                        (!canStartNewLevel() && !isLevelCompleted(level.id))
+                      }
+                    >
+                      {isLevelCompleted(level.id) ? "Review" : "Start"}
+                    </Button>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+          ))}
+        </div>
       </div>
     </div>
   );
 };
 
-// Helper function to position levels on the map
-const getPositionClass = (index: number): string => {
-  const positions = [
-    'top-[10%] left-[20%]',
-    'top-[25%] left-[40%]',
-    'top-[45%] right-[35%]',
-    'top-[60%] left-[30%]',
-    'bottom-[20%] right-[25%]',
-    'bottom-[10%] left-[40%]'
-  ];
-  return positions[index] || '';
+// Helper function to position levels on a winding path
+const getPositionClass = (index: number, totalLevels: number): string => {
+  // Creates a zig-zag path that works well regardless of the number of levels
+  switch (index % 4) {
+    case 0: // Left side
+      return `top-[${10 + (index * 25)}%] left-[25%]`;
+    case 1: // Right side
+      return `top-[${10 + (index * 25)}%] right-[25%]`;
+    case 2: // Middle-left
+      return `top-[${10 + (index * 25)}%] left-[40%]`;
+    case 3: // Middle-right
+      return `top-[${10 + (index * 25)}%] right-[40%]`;
+    default:
+      return '';
+  }
 };
 
 export default LevelProgression;
