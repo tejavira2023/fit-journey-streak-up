@@ -1,16 +1,18 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight } from "lucide-react";
+import { CircleIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 type LevelProgressionProps = {
   category: string;
   difficulty: string;
 };
 
-// Mock data for the levels
 const getLevels = (category: string, difficulty: string) => {
   // In a real app, this would be fetched from a backend
   return [
@@ -43,6 +45,7 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
   const [levels, setLevels] = useState<any[]>([]);
   const [completedLevels, setCompletedLevels] = useState<string[]>([]);
   const [lastActivityDate, setLastActivityDate] = useState<string | null>(null);
+  const [openLevel, setOpenLevel] = useState<number | null>(null);
 
   useEffect(() => {
     // Get levels for this category and difficulty
@@ -54,7 +57,6 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
     setLastActivityDate(userData.lastActivity);
   }, [category, difficulty]);
 
-  // Check if user can start a new level today
   const canStartNewLevel = () => {
     if (!lastActivityDate) return true;
     
@@ -79,69 +81,96 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-center capitalize">
+    <div 
+      className="relative min-h-[600px] p-8 bg-gradient-to-br from-green-100 to-blue-100 rounded-xl"
+      style={{
+        backgroundImage: `url('/lovable-uploads/571c438b-0794-48be-a7fa-79006828e14c.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      <h2 className="text-2xl font-bold text-center mb-8 text-green-800 capitalize">
         {difficulty} {category} Journey
       </h2>
       
-      {!canStartNewLevel() && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-md mb-4">
-          <p className="text-sm">
-            You've already completed a level today. Come back tomorrow to continue your journey!
-          </p>
-        </div>
-      )}
-      
-      <div className="space-y-4">
+      <div className="relative">
         {levels.map((level, index) => (
-          <Card 
-            key={level.id} 
-            className={`relative ${
-              isLevelCompleted(level.id) 
-                ? "bg-green-50 border-green-200" 
-                : isLevelLocked(level.id, index)
-                ? "bg-gray-50 border-gray-200 opacity-70"
-                : ""
-            }`}
+          <Collapsible
+            key={level.id}
+            open={openLevel === level.id}
+            onOpenChange={() => setOpenLevel(openLevel === level.id ? null : level.id)}
           >
-            {isLevelCompleted(level.id) && (
-              <div className="absolute top-3 right-3">
-                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                  Completed
-                </span>
-              </div>
-            )}
-            
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">{level.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 mb-2">{level.description}</p>
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-gray-500">{level.duration}</span>
+            <div 
+              className={`absolute transition-all duration-300 ${getPositionClass(index)}`}
+            >
+              <CollapsibleTrigger asChild>
                 <Button
-                  size="sm"
-                  className={`${
-                    isLevelCompleted(level.id)
-                      ? "bg-green-600 hover:bg-green-700"
-                      : "bg-fitness-primary hover:bg-fitness-primary/90"
-                  }`}
-                  onClick={() => startLevel(level.id)}
-                  disabled={
-                    isLevelLocked(level.id, index) || 
-                    (!canStartNewLevel() && !isLevelCompleted(level.id))
-                  }
+                  className={`
+                    w-16 h-16 rounded-full relative 
+                    ${isLevelCompleted(level.id)
+                      ? "bg-green-500 hover:bg-green-600"
+                      : isLevelLocked(level.id, index)
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-500 hover:bg-blue-600"}
+                    transform hover:scale-110 transition-transform
+                    border-4 border-white shadow-lg
+                  `}
+                  disabled={isLevelLocked(level.id, index)}
                 >
-                  {isLevelCompleted(level.id) ? "Review" : "Start"} 
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <span className="text-xl font-bold text-white">{level.id}</span>
+                  {isLevelCompleted(level.id) && (
+                    <div className="absolute -top-1 -right-1">
+                      <div className="flex">
+                        {[...Array(3)].map((_, i) => (
+                          <span
+                            key={i}
+                            className="text-yellow-400 text-lg"
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent>
+                <div className="absolute z-10 mt-4 p-4 bg-white rounded-lg shadow-xl w-64 transform -translate-x-1/2 left-1/2">
+                  <h3 className="font-bold mb-2">{level.title}</h3>
+                  <p className="text-sm text-gray-600 mb-3">{level.description}</p>
+                  <p className="text-xs text-gray-500 mb-3">{level.duration}</p>
+                  <Button
+                    className="w-full bg-fitness-primary hover:bg-fitness-primary/90"
+                    onClick={() => startLevel(level.id)}
+                    disabled={
+                      isLevelLocked(level.id, index) || 
+                      (!canStartNewLevel() && !isLevelCompleted(level.id))
+                    }
+                  >
+                    {isLevelCompleted(level.id) ? "Review" : "Start"}
+                  </Button>
+                </div>
+              </CollapsibleContent>
+            </div>
+          </Collapsible>
         ))}
       </div>
     </div>
   );
+};
+
+// Helper function to position levels on the map
+const getPositionClass = (index: number): string => {
+  const positions = [
+    'top-[10%] left-[20%]',
+    'top-[25%] left-[40%]',
+    'top-[45%] right-[35%]',
+    'top-[60%] left-[30%]',
+    'bottom-[20%] right-[25%]',
+    'bottom-[10%] left-[40%]'
+  ];
+  return positions[index] || '';
 };
 
 export default LevelProgression;
