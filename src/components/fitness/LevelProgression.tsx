@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { CircleIcon, CheckCircle, Lock } from "lucide-react";
@@ -9,6 +8,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
+import { getAvatarImg } from "./levelAvatars";
 
 type LevelProgressionProps = {
   category: string;
@@ -148,10 +148,10 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
                 className={`absolute transition-all duration-300 ${getPositionClass(index)}`}
               >
                 <CollapsibleTrigger asChild>
-                  <div className="relative">
+                  <div className="relative flex flex-col items-center">
                     <Button
                       className={`
-                        w-16 h-16 rounded-full relative z-10
+                        w-20 h-20 rounded-full relative z-10 flex items-center justify-center p-0 overflow-hidden
                         ${isLevelCompleted(level.id)
                           ? "bg-green-500 hover:bg-green-600"
                           : level.locked
@@ -162,13 +162,18 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
                       `}
                       disabled={level.locked}
                     >
+                      <img
+                        src={getAvatarImg(category, level.id)}
+                        alt={`Avatar for level ${level.id}`}
+                        className="w-full h-full object-cover rounded-full"
+                      />
                       {level.locked ? (
-                        <Lock className="h-6 w-6 text-white" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                          <Lock className="h-8 w-8 text-white" />
+                        </div>
                       ) : isLevelCompleted(level.id) ? (
-                        <CheckCircle className="h-6 w-6 text-white" />
-                      ) : (
-                        <span className="text-xl font-bold text-white">{level.id}</span>
-                      )}
+                        <CheckCircle className="absolute bottom-2 right-2 h-6 w-6 text-white drop-shadow" />
+                      ) : null}
                     </Button>
                     {level.id === 1 && (
                       <div className="absolute -top-3 -right-3 bg-yellow-400 rounded-full px-2 py-1 text-xs font-bold text-white">

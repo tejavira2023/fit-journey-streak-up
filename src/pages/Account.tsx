@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, User, Save } from "lucide-react";
@@ -21,24 +20,32 @@ const Account = () => {
     weight: "",
     height: "",
     goal: "lose-weight",
+    problem: ""
   });
   
   useEffect(() => {
-    // Check if user is authenticated
     const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
     if (!isAuthenticated) {
       navigate("/login");
       return;
     }
     
-    // Load user data from localStorage if available
     const userData = localStorage.getItem("userProfileData");
     if (userData) {
-      setFormData(JSON.parse(userData));
+      let data = JSON.parse(userData);
+      setFormData({ ...{
+        name: "",
+        age: "",
+        gender: "male",
+        weight: "",
+        height: "",
+        goal: "lose-weight",
+        problem: ""
+      }, ...data });
     }
   }, [navigate]);
   
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -50,7 +57,6 @@ const Account = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Save to localStorage
     localStorage.setItem("userProfileData", JSON.stringify(formData));
     
     toast({
@@ -173,6 +179,18 @@ const Account = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="problem">Is there any problem you are facing and want to solve from our app?</Label>
+                    <textarea
+                      id="problem"
+                      name="problem"
+                      value={formData.problem}
+                      onChange={handleInputChange}
+                      placeholder="Describe here (e.g. lose weight, back pain, improve posture...)"
+                      className="w-full min-h-[80px] mt-1 rounded-md border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-fitness-primary text-sm"
+                    />
                   </div>
                   
                   <Button type="submit" className="bg-fitness-primary hover:bg-fitness-primary/90">

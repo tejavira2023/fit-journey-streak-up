@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -31,28 +30,10 @@ const LevelDetail = () => {
   const handleLevelComplete = () => {
     setLevelCompleted(true);
     
-    // Get current coins from localStorage
-    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-    const currentCoins = userData.coins || 0;
-    
-    // Add 5 coins for completing the exercise
-    const updatedUserData = {
-      ...userData,
-      coins: currentCoins + 5
-    };
-    
-    // Save updated coins to localStorage
-    localStorage.setItem("userData", JSON.stringify(updatedUserData));
-    
-    // Show reward notification
+    // Only show notification to do quiz
     toast({
-      title: "Exercise Completed!",
-      description: (
-        <div className="flex items-center gap-2">
-          <Coins className="h-4 w-4 text-yellow-400" />
-          <span>You earned 5 coins!</span>
-        </div>
-      )
+      title: "Workout Complete!",
+      description: "Now complete the quiz to earn your reward."
     });
   };
 
@@ -122,6 +103,7 @@ const LevelDetail = () => {
               onComplete={() => {
                 // In a real app, we would update user progress here
                 console.log("Level completed!");
+                // AWARD COINS HERE (see new logic in QuizComponent)
               }}
             />
           </div>
