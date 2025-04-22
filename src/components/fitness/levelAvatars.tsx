@@ -3,9 +3,9 @@
 // This approach allows more flexibility with image paths
 
 // Define image URLs for different avatar types
-const healthyImg = "/placeholder.svg";  // Default placeholder image
-const obeseImg = "/placeholder.svg";    // Default placeholder image 
-const meditationImg = "/placeholder.svg"; // Default placeholder image
+const healthyImg = "/healthy-avatar.svg";  // Fit/slim person
+const obeseImg = "/obese-avatar.svg";      // Overweight person 
+const meditationImg = "/meditation-avatar.svg"; // Person in meditation pose
 
 // For expansion later: add more avatars for other programs
 export const getAvatarImg = (category: string, level: number) => {
