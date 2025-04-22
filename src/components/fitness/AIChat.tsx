@@ -1,10 +1,10 @@
 
+
 import { useState } from "react";
 import { Send, MessageCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 
 type Message = {
   id: string;
@@ -16,7 +16,7 @@ const AIChat = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
-      content: "Hello! I'm your fitness AI assistant. Ask me about diet recommendations or exercise routines based on your fitness goals.",
+      content: "Hi! I'm your AI Fitness Assistant. Ask me for a personal diet chart or a fitness plan to help you reach your ideal body. Share your age, gender, height, weight, and goal for best results.",
       isUser: false,
     },
   ]);
@@ -25,57 +25,90 @@ const AIChat = () => {
 
   const handleSendMessage = () => {
     if (!input.trim()) return;
-    
+
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       content: input,
       isUser: true,
     };
-    
+
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
-    
-    // Simulate AI response
-    setTimeout(() => {
-      const userGoal = localStorage.getItem("userProfileData") 
-        ? JSON.parse(localStorage.getItem("userProfileData") || "{}").goal
-        : "lose-weight";
-      
-      let aiResponse = "";
-      if (input.toLowerCase().includes("diet") || input.toLowerCase().includes("eat") || input.toLowerCase().includes("food")) {
-        aiResponse = getDietRecommendation(userGoal);
-      } else if (input.toLowerCase().includes("exercise") || input.toLowerCase().includes("workout") || input.toLowerCase().includes("routine")) {
-        aiResponse = getExerciseRecommendation(userGoal);
-      } else {
-        aiResponse = "I can help you with diet and exercise recommendations based on your fitness goals. Just ask me about either diet plans or workout routines!";
+
+    // Collect user data for response
+    let profile = {
+      goal: "lose-weight",
+      name: "",
+      age: "",
+      gender: "",
+      weight: "",
+      height: "",
+    };
+    try {
+      if (localStorage.getItem("userProfileData")) {
+        profile = { ...profile, ...JSON.parse(localStorage.getItem("userProfileData") || "{}") };
       }
-      
+    } catch {}
+
+    setTimeout(() => {
+      let aiResponse = "";
+
+      const lower = input.toLowerCase();
+
+      if (
+        lower.includes("diet chart") ||
+        lower.includes("meal plan") ||
+        lower.includes("food plan") ||
+        lower.includes("diet plan")
+      ) {
+        aiResponse = generateDietChart(profile);
+      } else if (
+        lower.includes("plan") ||
+        lower.includes("routine") ||
+        lower.includes("workout") ||
+        lower.includes("body") ||
+        lower.includes("achieve") ||
+        lower.includes("fitness plan")
+      ) {
+        aiResponse = generateFitnessPlan(profile);
+      } else if (
+        lower.includes("hello") ||
+        lower.includes("hi") ||
+        lower.includes("help")
+      ) {
+        aiResponse =
+          "Hello! Ask me for a custom diet chart or fitness plan by sharing your details or your ideal body goal.";
+      } else {
+        aiResponse =
+          "I can create a diet chart or fitness/health plan for you to achieve your dream body! Kindly tell me your current age, gender, height, weight, and your goal (e.g. gain weight, lose fat, muscle gain, yoga, etc).";
+      }
+
       const aiMessage: Message = {
         id: Date.now().toString(),
         content: aiResponse,
         isUser: false,
       };
-      
+
       setMessages((prev) => [...prev, aiMessage]);
       setIsLoading(false);
-    }, 1500);
+    }, 1600);
   };
-  
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
-  
+
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg font-semibold flex items-center gap-2">
           <MessageCircle className="h-5 w-5 text-fitness-primary" />
-          Fitness Assistant
+          AI Assistant
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-grow overflow-y-auto px-4 pb-0">
@@ -120,7 +153,7 @@ const AIChat = () => {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about diet or exercises..."
+            placeholder="Ask for a diet chart or a fitness plan..."
             onKeyDown={handleKeyPress}
           />
           <Button 
@@ -137,39 +170,131 @@ const AIChat = () => {
   );
 };
 
-// Helper functions for generating AI responses
-function getDietRecommendation(goal: string): string {
-  switch (goal) {
-    case "lose-weight":
-      return "For weight loss, focus on a calorie deficit with plenty of protein (lean meats, fish, tofu), fiber-rich vegetables, and complex carbs. Limit processed foods, sugary drinks, and alcohol. Aim for 500 calories less than your maintenance level and drink plenty of water.";
+// Helper: returns a simple diet chart string based on profile.
+function generateDietChart(profile: any): string {
+  let chart = "";
+  switch (profile.goal) {
     case "gain-weight":
-      return "To gain weight healthily, eat in a calorie surplus with nutrient-dense foods. Include protein (meat, eggs, dairy), complex carbs (rice, pasta, potatoes), healthy fats (nuts, avocados), and nutrient-rich vegetables. Try to eat more frequently throughout the day.";
-    case "build-muscle":
-      return "For muscle building, increase your protein intake to 1.6-2.2g per kg of body weight daily. Focus on complete proteins (meat, eggs, dairy), complex carbs for energy, and healthy fats. Time your protein intake around workouts for optimal muscle protein synthesis.";
-    case "improve-flexibility":
-      return "While diet doesn't directly improve flexibility, anti-inflammatory foods can help recovery. Include omega-3 rich foods (fish, walnuts, flaxseeds), colorful fruits and vegetables, and stay well-hydrated to keep joints and tissues healthy.";
-    case "reduce-stress":
-      return "For stress reduction, focus on foods that boost mood and reduce inflammation. Include omega-3 fats (salmon, walnuts), magnesium-rich foods (dark chocolate, nuts, seeds), complex carbs, and probiotic foods (yogurt). Limit caffeine and alcohol.";
+      chart = `Here's a sample calorie-surplus diet chart for gaining weight:
+- Breakfast: Peanut butter toast + Eggs + Banana + Milk
+- Snack: Dried fruits + Greek yogurt
+- Lunch: Rice + Chicken or Paneer + Dal + Vegetables
+- Snack: Granola bar + Fruit smoothie
+- Dinner: Pasta or Parathas + Paneer/Chicken/Fish + Veggies
+- Before Bed: Glass of milk or protein shake.
+
+Aim to eat every 3 hours and include healthy fats (nuts, seeds, ghee).`;
+      break;
+
+    case "lose-weight":
+      chart = `Here's a calorie-deficit diet chart for losing weight:
+- Breakfast: Oats with berries + 1 boiled egg
+- Snack: Apple or handful of nuts
+- Lunch: Grilled chicken or tofu + Salad + Brown rice
+- Snack: Roasted chana or green tea
+- Dinner: Stir-fried veggies + Soup + Small portion rice/roti
+
+Drink lots of water and avoid sugary snacks or drinks.`;
+      break;
+
+    case "yoga":
+      chart = `For a yoga lifestyle:
+- Breakfast: Fresh fruit + Herbal tea
+- Snack: Mixed seeds and nuts
+- Lunch: Vegetable khichdi or daal rice + salad
+- Snack: Coconut water + sprouts
+- Dinner: Light vegetable soup or sautéed veggies + chapati
+
+Eat light, mostly plant foods, and avoid overeating.`;
+      break;
+
+    case "meditation":
+      chart = `For a meditation-focused lifestyle:
+- Breakfast: Oats with nuts and honey
+- Snack: Herbal tea + fruit
+- Lunch: Lentils (dal), brown rice, lightly steamed veggies
+- Snack: Seeds, dates, or fruit
+- Dinner: Vegetable soup, khichdi, or salad
+
+Avoid heavy, spicy or processed food for better focus.`;
+      break;
+
     default:
-      return "A balanced diet with adequate protein, complex carbohydrates, healthy fats, and plenty of fruits and vegetables will help you achieve your fitness goals. Adjust portions based on your specific calorie needs.";
+      chart = `Here's a general balanced diet:
+- Breakfast: Oats or whole-grain bread + eggs/tofu
+- Snack: Fresh fruit or nuts
+- Lunch: Rice/roti + dal + vegetables + salad
+- Snack: Yogurt or sprouts
+- Dinner: Light meal like soup + chapati/roti + veggies
+
+Let me know your specific goal for a custom chart!`;
   }
+  return chart;
 }
 
-function getExerciseRecommendation(goal: string): string {
-  switch (goal) {
-    case "lose-weight":
-      return "For weight loss, combine cardiovascular exercise (running, cycling, swimming) with strength training. Aim for 3-5 cardio sessions (30-60 minutes each) and 2-3 strength sessions weekly. High-Intensity Interval Training (HIIT) is particularly effective for fat loss.";
+// Helper: returns a sample weekly fitness plan string based on profile.
+function generateFitnessPlan(profile: any): string {
+  switch (profile.goal) {
     case "gain-weight":
-      return "To gain weight (particularly muscle), focus on resistance training with progressive overload. Target major muscle groups with compound exercises (squats, deadlifts, bench press) 3-4 times weekly. Limit cardio to maintain your calorie surplus.";
-    case "build-muscle":
-      return "For muscle building, focus on resistance training with progressive overload. Split your workouts by muscle groups (push/pull/legs or upper/lower) with 3-5 sets of 8-12 reps per exercise. Allow 48 hours for muscle recovery between training the same muscle group.";
-    case "improve-flexibility":
-      return "To improve flexibility, practice daily stretching routines or yoga. Hold static stretches for 30-60 seconds. Focus on problem areas, but maintain a full-body approach. Dynamic stretching before workouts and static stretching after is ideal.";
-    case "reduce-stress":
-      return "For stress reduction, try low-intensity activities like yoga, tai chi, walking in nature, or swimming. Add mindfulness practices like meditation. Aim for 30 minutes of activity most days, prioritizing enjoyment over intensity.";
+      return `Here's a 1-week beginner muscle-building plan:
+Day 1: Full body strength (push ups, squats, lunges, plank)
+Day 2: Rest or gentle walk
+Day 3: Upper body & core (rows, shoulder press, crunches)
+Day 4: Rest or light yoga
+Day 5: Lower body (deadlifts, calf raises, wall sit)
+Day 6: Cardio 20 mins + core
+Day 7: Rest
+
+Focus on progressively lifting heavier and eat in a surplus diet.`;
+    case "lose-weight":
+      return `Here's a 1-week weight loss plan:
+Day 1: Cardio 30 mins (running/cycling)
+Day 2: Strength (pushups, squats, lunges)
+Day 3: Cardio 20 mins + core
+Day 4: Low-impact activity (walk/yoga)
+Day 5: Strength (upper body)
+Day 6: Cardio + legs
+Day 7: Rest
+
+Consistency + calorie deficit diet is key!`;
+
+    case "yoga":
+      return `Here's a 1-week yoga and mindfulness plan:
+Day 1: Sun salutations, gentle stretching
+Day 2: Hatha yoga 30 mins
+Day 3: Mindful breathing + meditation
+Day 4: Restorative yoga
+Day 5: Power yoga or vinyasa
+Day 6: Meditation & reflection
+Day 7: Light movement & journaling
+
+Let me know if you want a more detailed yoga schedule!`;
+
+    case "meditation":
+      return `Basic 7-day meditation plan:
+Day 1: 10 mins body scan meditation
+Day 2: 10 mins mindful breathing
+Day 3: 15 mins guided meditation
+Day 4: Walking meditation 10 mins
+Day 5: 15 mins gratitude meditation
+Day 6: 20 mins visualization practice
+Day 7: Choose your favourite
+
+Try to meditate at the same time each day!`;
+
     default:
-      return "A balanced exercise program includes cardiovascular training, strength training, and flexibility work. Aim for at least 150 minutes of moderate activity weekly, with 2-3 strength sessions. Always include warm-ups and cool-downs.";
+      return `Here's a general weekly plan:
+Day 1: Cardio + strength
+Day 2: Core + flexibility
+Day 3: Active rest (walk/yoga)
+Day 4: Upper body strength
+Day 5: Cardio or HIIT
+Day 6: Lower body strength
+Day 7: Rest
+
+Let me know your goal for a custom plan!`;
   }
 }
 
 export default AIChat;
+

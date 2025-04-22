@@ -199,10 +199,6 @@ const Account = () => {
               </CardContent>
             </Card>
           </div>
-          
-          <div className="md:col-span-1">
-            <AIChat />
-          </div>
         </div>
       </main>
     </div>
