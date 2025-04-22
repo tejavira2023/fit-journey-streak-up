@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
+import ConsultBookButton from "@/components/consult/ConsultBookButton";
 
 const Consult = () => {
   const navigate = useNavigate();
@@ -88,12 +89,7 @@ const Consult = () => {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button 
-                  onClick={() => handleSchedule(consultant.name)}
-                  className="w-full bg-fitness-primary hover:bg-fitness-primary/90"
-                >
-                  Schedule Session
-                </Button>
+                <ConsultBookButton consultant={consultant} />
               </CardFooter>
             </Card>
           ))}

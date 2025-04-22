@@ -173,9 +173,8 @@ const Account = () => {
                         <SelectContent>
                           <SelectItem value="lose-weight">Lose Weight</SelectItem>
                           <SelectItem value="gain-weight">Gain Weight</SelectItem>
-                          <SelectItem value="build-muscle">Build Muscle</SelectItem>
-                          <SelectItem value="improve-flexibility">Improve Flexibility</SelectItem>
-                          <SelectItem value="reduce-stress">Reduce Stress</SelectItem>
+                          <SelectItem value="yoga">Yoga</SelectItem>
+                          <SelectItem value="meditation">Meditation</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
