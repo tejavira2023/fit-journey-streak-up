@@ -1,11 +1,19 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 type AuthFormProps = {
   type: "login" | "signup";
@@ -18,6 +26,18 @@ const AuthForm = ({ type }: AuthFormProps) => {
     password: "",
     confirmPassword: "",
   });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Check if user is authenticated and redirect to /home if so
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session) {
+        navigate("/home");
+      }
+    };
+    getSession();
+  }, [navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -26,34 +46,43 @@ const AuthForm = ({ type }: AuthFormProps) => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     if (type === "signup" && formData.password !== formData.confirmPassword) {
       toast.error("Passwords do not match!");
+      setLoading(false);
       return;
     }
 
-    // In a real app, we would call an API to authenticate the user.
-    // For now, we'll just show a success message and navigate to the home page.
-    
-    localStorage.setItem("isAuthenticated", "true");
-    localStorage.setItem("userEmail", formData.email);
-    
-    if (type === "signup") {
-      // Initialize user data for new users
-      const userData = {
-        streak: 0,
-        lastActivity: null,
-        completedLevels: [],
-      };
-      localStorage.setItem("userData", JSON.stringify(userData));
-      toast.success("Account created successfully!");
+    if (type === "login") {
+      // Login flow with Supabase
+      const { error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Logged in successfully!");
+        navigate("/home");
+      }
     } else {
-      toast.success("Logged in successfully!");
+      // Signup flow with Supabase
+      const { error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+      });
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Account created! Please check your email to confirm.");
+        // Optionally, you can automatically login or navigate
+        // navigate("/home");
+      }
     }
-    
-    navigate("/home");
+    setLoading(false);
   };
 
   return (
@@ -63,8 +92,8 @@ const AuthForm = ({ type }: AuthFormProps) => {
           {type === "login" ? "Welcome Back" : "Create an Account"}
         </CardTitle>
         <CardDescription className="text-center">
-          {type === "login" 
-            ? "Enter your credentials to access your account" 
+          {type === "login"
+            ? "Enter your credentials to access your account"
             : "Sign up to start your fitness journey"}
         </CardDescription>
       </CardHeader>
@@ -81,6 +110,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
                 required
                 value={formData.email}
                 onChange={handleChange}
+                disabled={loading}
               />
             </div>
             <div className="grid gap-2">
@@ -92,6 +122,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
                 required
                 value={formData.password}
                 onChange={handleChange}
+                disabled={loading}
               />
             </div>
             {type === "signup" && (
@@ -104,14 +135,22 @@ const AuthForm = ({ type }: AuthFormProps) => {
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
+                  disabled={loading}
                 />
               </div>
             )}
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full mt-4 bg-fitness-primary hover:bg-fitness-primary/90"
+              disabled={loading}
             >
-              {type === "login" ? "Sign In" : "Sign Up"}
+              {loading
+                ? type === "login"
+                  ? "Signing In..."
+                  : "Signing Up..."
+                : type === "login"
+                ? "Sign In"
+                : "Sign Up"}
             </Button>
           </div>
         </form>
@@ -121,10 +160,12 @@ const AuthForm = ({ type }: AuthFormProps) => {
           {type === "login" ? (
             <>
               Don't have an account?{" "}
-              <Button 
-                variant="link" 
+              <Button
+                variant="link"
                 className="p-0 text-fitness-primary hover:text-fitness-accent"
                 onClick={() => navigate("/signup")}
+                type="button"
+                disabled={loading}
               >
                 Create one
               </Button>
@@ -132,10 +173,12 @@ const AuthForm = ({ type }: AuthFormProps) => {
           ) : (
             <>
               Already have an account?{" "}
-              <Button 
-                variant="link" 
+              <Button
+                variant="link"
                 className="p-0 text-fitness-primary hover:text-fitness-accent"
                 onClick={() => navigate("/login")}
+                type="button"
+                disabled={loading}
               >
                 Log in
               </Button>
