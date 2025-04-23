@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 type AuthFormProps = {
@@ -50,39 +50,56 @@ const AuthForm = ({ type }: AuthFormProps) => {
     e.preventDefault();
     setLoading(true);
 
-    if (type === "signup" && formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match!");
-      setLoading(false);
-      return;
-    }
+    try {
+      if (type === "signup" && formData.password !== formData.confirmPassword) {
+        toast.error("Passwords do not match!");
+        setLoading(false);
+        return;
+      }
 
-    if (type === "login") {
-      // Login flow with Supabase
-      const { error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
-      if (error) {
-        toast.error(error.message);
+      if (type === "login") {
+        // Login flow with Supabase
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+        
+        if (error) {
+          toast.error(error.message);
+        } else if (data?.session) {
+          toast.success("Logged in successfully!");
+          navigate("/home");
+        }
       } else {
-        toast.success("Logged in successfully!");
-        navigate("/home");
+        // Signup flow with Supabase
+        const { data, error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              email: formData.email,
+            },
+          }
+        });
+        
+        if (error) {
+          toast.error(error.message);
+        } else if (data?.user) {
+          toast.success("Account created successfully!");
+          // No need to wait for email confirmation, log them in directly
+          await supabase.auth.signInWithPassword({
+            email: formData.email,
+            password: formData.password,
+          });
+          navigate("/home");
+        }
       }
-    } else {
-      // Signup flow with Supabase
-      const { error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-      });
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success("Account created! Please check your email to confirm.");
-        // Optionally, you can automatically login or navigate
-        // navigate("/home");
-      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+      console.error("Auth error:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
