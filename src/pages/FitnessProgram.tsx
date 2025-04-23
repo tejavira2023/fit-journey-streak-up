@@ -1,29 +1,68 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import LevelProgression from "@/components/fitness/LevelProgression";
+import { supabase } from "@/integrations/supabase/client";
 
 const FitnessProgram = () => {
   const { category, difficulty } = useParams();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     // Check if user is authenticated
-    const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
+    const checkAuth = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (!data.session) {
+          navigate("/login", { replace: true });
+          return;
+        }
+        
+        // Validate parameters
+        if (!category || !difficulty) {
+          navigate("/fitness");
+          return;
+        }
+      } catch (error) {
+        console.error("Auth check error:", error);
+        navigate("/login", { replace: true });
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    // Validate parameters
-    if (!category || !difficulty) {
-      navigate("/fitness");
-      return;
-    }
+    checkAuth();
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_OUT' || !session) {
+          navigate("/login", { replace: true });
+        }
+      }
+    );
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate, category, difficulty]);
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-fitness-primary"></div>
+      </div>
+    );
+  }
+  
   if (!category || !difficulty) {
     return null;
   }

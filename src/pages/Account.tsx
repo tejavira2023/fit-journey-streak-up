@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, User, Save } from "lucide-react";
@@ -9,10 +10,12 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/components/ui/use-toast";
 import AIChat from "@/components/fitness/AIChat";
+import { supabase } from "@/integrations/supabase/client";
 
 const Account = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
     age: "",
@@ -24,25 +27,50 @@ const Account = () => {
   });
   
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
+    // Check if user is authenticated
+    const checkAuth = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (!data.session) {
+          navigate("/login", { replace: true });
+          return;
+        }
+        
+        // If authenticated, load profile data
+        const userData = localStorage.getItem("userProfileData");
+        if (userData) {
+          setFormData(prevState => ({ 
+            ...prevState, 
+            ...JSON.parse(userData) 
+          }));
+        }
+      } catch (error) {
+        console.error("Auth check error:", error);
+        navigate("/login", { replace: true });
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    const userData = localStorage.getItem("userProfileData");
-    if (userData) {
-      let data = JSON.parse(userData);
-      setFormData({ ...{
-        name: "",
-        age: "",
-        gender: "male",
-        weight: "",
-        height: "",
-        goal: "lose-weight",
-        problem: ""
-      }, ...data });
-    }
+    checkAuth();
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_OUT' || !session) {
+          navigate("/login", { replace: true });
+        }
+      }
+    );
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -64,6 +92,14 @@ const Account = () => {
       description: "Your account information has been saved.",
     });
   };
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-fitness-primary"></div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-gray-50">
