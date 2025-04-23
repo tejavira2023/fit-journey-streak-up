@@ -9,16 +9,19 @@ import ConsultCard from "@/components/fitness/ConsultCard";
 import FloatingChatButton from "@/components/fitness/FloatingChatButton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Session } from "@supabase/supabase-js";
 
 const Home = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(null);
   const [userData, setUserData] = useState({
     streak: 0,
     completedLevels: [] as string[],
   });
 
   useEffect(() => {
+    // Check if user is already authenticated
     const checkAuth = async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
@@ -32,10 +35,21 @@ const Home = () => {
           return;
         }
         
+        setSession(data.session);
+        
         // If we have a session, get or initialize user data
         const storedUserData = localStorage.getItem("userData");
         if (storedUserData) {
           setUserData(JSON.parse(storedUserData));
+        } else {
+          // Initialize user data
+          const initialUserData = {
+            streak: 0,
+            completedLevels: [],
+            lastActivityDates: {}
+          };
+          localStorage.setItem("userData", JSON.stringify(initialUserData));
+          setUserData(initialUserData);
         }
       } catch (error) {
         console.error("Auth check error:", error);
@@ -53,6 +67,8 @@ const Home = () => {
       (event, session) => {
         if (event === 'SIGNED_OUT' || !session) {
           navigate("/login", { replace: true });
+        } else if (event === 'SIGNED_IN') {
+          setSession(session);
         }
       }
     );

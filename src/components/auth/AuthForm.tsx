@@ -57,6 +57,16 @@ const AuthForm = ({ type }: AuthFormProps) => {
           console.error("Login error:", error);
           toast.error(error.message || "Failed to log in");
         } else if (data?.session) {
+          // Initialize user data if it doesn't exist
+          if (!localStorage.getItem("userData")) {
+            const initialUserData = {
+              streak: 0,
+              completedLevels: [],
+              lastActivityDates: {}
+            };
+            localStorage.setItem("userData", JSON.stringify(initialUserData));
+          }
+          
           toast.success("Logged in successfully!");
           navigate("/home", { replace: true });
         }
@@ -76,8 +86,17 @@ const AuthForm = ({ type }: AuthFormProps) => {
           console.error("Signup error:", error);
           toast.error(error.message || "Failed to create account");
         } else if (data?.user) {
+          // Initialize user data for new signup
+          const initialUserData = {
+            streak: 0,
+            completedLevels: [],
+            lastActivityDates: {}
+          };
+          localStorage.setItem("userData", JSON.stringify(initialUserData));
+          
           toast.success("Account created successfully!");
-          // Automatically log them in after signup
+          
+          // Let's automatically sign them in
           const { error: signInError } = await supabase.auth.signInWithPassword({
             email: formData.email,
             password: formData.password,
