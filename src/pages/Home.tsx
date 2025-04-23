@@ -1,36 +1,85 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Award, Calendar, LogOut, ArrowRight, User } from "lucide-react";
+import { LogOut, ArrowRight, User } from "lucide-react";
 import StreakDisplay from "@/components/fitness/StreakDisplay";
 import RewardCard from "@/components/fitness/RewardCard";
 import ConsultCard from "@/components/fitness/ConsultCard";
 import FloatingChatButton from "@/components/fitness/FloatingChatButton";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Home = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
   const [userData, setUserData] = useState({
     streak: 0,
     completedLevels: [] as string[],
   });
 
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
-
-    const storedUserData = localStorage.getItem("userData");
-    if (storedUserData) {
-      setUserData(JSON.parse(storedUserData));
-    }
+    const checkAuth = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (!data.session) {
+          navigate("/login", { replace: true });
+          return;
+        }
+        
+        // If we have a session, get or initialize user data
+        const storedUserData = localStorage.getItem("userData");
+        if (storedUserData) {
+          setUserData(JSON.parse(storedUserData));
+        }
+      } catch (error) {
+        console.error("Auth check error:", error);
+        toast.error("Authentication error. Please log in again.");
+        navigate("/login", { replace: true });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuth();
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_OUT' || !session) {
+          navigate("/login", { replace: true });
+        }
+      }
+    );
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Logged out successfully");
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Failed to log out");
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-fitness-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -80,7 +129,6 @@ const Home = () => {
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Award className="h-5 w-5 text-fitness-primary" />
               <h2 className="text-xl font-semibold">Rewards</h2>
             </div>
             <RewardCard 
@@ -93,7 +141,6 @@ const Home = () => {
           
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Calendar className="h-5 w-5 text-fitness-primary" />
               <h2 className="text-xl font-semibold">Consultation</h2>
             </div>
             <ConsultCard />

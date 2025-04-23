@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,17 +28,6 @@ const AuthForm = ({ type }: AuthFormProps) => {
   });
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    // Check if user is authenticated and redirect to /home if so
-    const getSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data?.session) {
-        navigate("/home");
-      }
-    };
-    getSession();
-  }, [navigate]);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -65,10 +54,11 @@ const AuthForm = ({ type }: AuthFormProps) => {
         });
         
         if (error) {
-          toast.error(error.message);
+          console.error("Login error:", error);
+          toast.error(error.message || "Failed to log in");
         } else if (data?.session) {
           toast.success("Logged in successfully!");
-          navigate("/home");
+          navigate("/home", { replace: true });
         }
       } else {
         // Signup flow with Supabase
@@ -83,20 +73,28 @@ const AuthForm = ({ type }: AuthFormProps) => {
         });
         
         if (error) {
-          toast.error(error.message);
+          console.error("Signup error:", error);
+          toast.error(error.message || "Failed to create account");
         } else if (data?.user) {
           toast.success("Account created successfully!");
-          // No need to wait for email confirmation, log them in directly
-          await supabase.auth.signInWithPassword({
+          // Automatically log them in after signup
+          const { error: signInError } = await supabase.auth.signInWithPassword({
             email: formData.email,
             password: formData.password,
           });
-          navigate("/home");
+          
+          if (signInError) {
+            console.error("Auto-login error:", signInError);
+            toast.error("Account created but couldn't log in automatically. Please log in.");
+            navigate("/login", { replace: true });
+          } else {
+            navigate("/home", { replace: true });
+          }
         }
       }
     } catch (error) {
-      toast.error("An unexpected error occurred");
       console.error("Auth error:", error);
+      toast.error("An unexpected error occurred");
     } finally {
       setLoading(false);
     }
