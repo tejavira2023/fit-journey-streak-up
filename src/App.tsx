@@ -1,8 +1,10 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -27,13 +29,41 @@ const App = () => (
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/fitness" element={<FitnessCategories />} />
-          <Route path="/fitness/:category/:difficulty" element={<FitnessProgram />} />
-          <Route path="/fitness/:category/:difficulty/level/:levelId" element={<LevelDetail />} />
-          <Route path="/consult" element={<Consult />} />
-          <Route path="/account" element={<Account />} />
-          <Route path="/consultation-form" element={<ConsultationForm />} />
+          <Route path="/home" element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          } />
+          <Route path="/fitness" element={
+            <ProtectedRoute>
+              <FitnessCategories />
+            </ProtectedRoute>
+          } />
+          <Route path="/fitness/:category/:difficulty" element={
+            <ProtectedRoute>
+              <FitnessProgram />
+            </ProtectedRoute>
+          } />
+          <Route path="/fitness/:category/:difficulty/level/:levelId" element={
+            <ProtectedRoute>
+              <LevelDetail />
+            </ProtectedRoute>
+          } />
+          <Route path="/consult" element={
+            <ProtectedRoute>
+              <Consult />
+            </ProtectedRoute>
+          } />
+          <Route path="/account" element={
+            <ProtectedRoute>
+              <Account />
+            </ProtectedRoute>
+          } />
+          <Route path="/consultation-form" element={
+            <ProtectedRoute>
+              <ConsultationForm />
+            </ProtectedRoute>
+          } />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -1,55 +1,14 @@
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Weight, Brain, Activity, ArrowLeft, HeartPulse } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FitnessCategory from "@/components/fitness/FitnessCategory";
 import DifficultySelector from "@/components/fitness/DifficultySelector";
-import { supabase } from "@/integrations/supabase/client";
 
 const FitnessCategories = () => {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  
-  useEffect(() => {
-    // Check if user is authenticated
-    const checkAuth = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          throw error;
-        }
-        
-        if (!data.session) {
-          navigate("/login", { replace: true });
-          return;
-        }
-      } catch (error) {
-        console.error("Auth check error:", error);
-        navigate("/login", { replace: true });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    checkAuth();
-    
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_OUT' || !session) {
-          navigate("/login", { replace: true });
-        }
-      }
-    );
-    
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate]);
   
   const fitnessCategories = [
     {
@@ -78,14 +37,6 @@ const FitnessCategories = () => {
     setSelectedCategory(categoryName);
     setIsDialogOpen(true);
   };
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-fitness-primary"></div>
-      </div>
-    );
-  }
   
   return (
     <div className="min-h-screen bg-gray-50">
