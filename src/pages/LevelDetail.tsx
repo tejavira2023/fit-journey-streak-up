@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -30,11 +31,61 @@ const LevelDetail = () => {
   const handleLevelComplete = () => {
     setLevelCompleted(true);
     
-    // Only show notification to do quiz
+    // Show notification to do quiz
     toast({
       title: "Workout Complete!",
       description: "Now complete the quiz to earn your reward."
     });
+  };
+
+  const handleQuizComplete = () => {
+    // Update user progress in localStorage
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    
+    // Update completed levels
+    const levelKey = `${category}-${difficulty}-${levelId}`;
+    if (!userData.completedLevels) {
+      userData.completedLevels = [];
+    }
+    if (!userData.completedLevels.includes(levelKey)) {
+      userData.completedLevels.push(levelKey);
+    }
+    
+    // Update streak
+    const today = new Date().toDateString();
+    const lastDate = userData.lastActivityDate || "";
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayString = yesterday.toDateString();
+    
+    if (!userData.streak) {
+      userData.streak = 1;
+    } else if (lastDate === yesterdayString || lastDate === today) {
+      userData.streak += 1;
+    } else if (lastDate !== today) {
+      userData.streak = 1;
+    }
+    
+    userData.lastActivityDate = today;
+    
+    // Update coins
+    if (!userData.coins) {
+      userData.coins = 0;
+    }
+    userData.coins += 10;
+    
+    // Save updated data
+    localStorage.setItem("userData", JSON.stringify(userData));
+    
+    toast({
+      title: "Level Completed!",
+      description: "You've earned 10 coins for completing this level.",
+    });
+    
+    // Navigate back to category page after delay
+    setTimeout(() => {
+      navigate(`/fitness/${category}/${difficulty}`);
+    }, 2000);
   };
 
   if (!category || !difficulty || !levelId) {
@@ -100,11 +151,7 @@ const LevelDetail = () => {
               category={category} 
               difficulty={difficulty}
               levelId={parseInt(levelId)}
-              onComplete={() => {
-                // In a real app, we would update user progress here
-                console.log("Level completed!");
-                // AWARD COINS HERE (see new logic in QuizComponent)
-              }}
+              onComplete={handleQuizComplete}
             />
           </div>
         )}

@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Award, Coins } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 type RewardCardProps = {
   title: string;
@@ -13,12 +14,39 @@ type RewardCardProps = {
 
 const RewardCard = ({ title, description, progress, total }: RewardCardProps) => {
   const [coins, setCoins] = useState(0);
-  const percentage = (progress / total) * 100;
+  const [internalProgress, setInternalProgress] = useState(progress);
+  const percentage = (internalProgress / total) * 100;
 
   useEffect(() => {
+    // Initial load
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
     setCoins(userData.coins || 0);
-  }, []);
+    setInternalProgress(progress);
+    
+    // Set up an interval to check for updates
+    const interval = setInterval(() => {
+      const latestData = JSON.parse(localStorage.getItem("userData") || "{}");
+      if (latestData.coins !== coins) {
+        setCoins(latestData.coins || 0);
+      }
+      if (progress !== internalProgress) {
+        setInternalProgress(progress);
+      }
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, [progress, coins, internalProgress]);
+  
+  const handleClaimReward = () => {
+    if (internalProgress >= total) {
+      const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+      userData.coins = (userData.coins || 0) + 50;
+      localStorage.setItem("userData", JSON.stringify(userData));
+      
+      setCoins(userData.coins);
+      toast.success("You've claimed 50 coins as your reward!");
+    }
+  };
 
   return (
     <Card className="w-full card-hover animate-fade-in">
@@ -40,15 +68,16 @@ const RewardCard = ({ title, description, progress, total }: RewardCardProps) =>
           ></div>
         </div>
         <div className="flex justify-between items-center text-sm">
-          <span>{progress} / {total} completed</span>
+          <span>{internalProgress} / {total} completed</span>
           <span>{Math.round(percentage)}%</span>
         </div>
       </CardContent>
       <CardFooter>
-        {progress >= total ? (
+        {internalProgress >= total ? (
           <Button 
             variant="outline" 
             className="w-full border-fitness-primary text-fitness-primary hover:bg-fitness-primary/10 button-bounce"
+            onClick={handleClaimReward}
           >
             Claim Reward
           </Button>

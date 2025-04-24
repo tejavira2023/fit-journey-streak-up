@@ -2,25 +2,53 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 const ConsultationForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [goals, setGoals] = useState("");
   const [concerns, setConcerns] = useState("");
-  const consultantName = location.state?.consultantName || "the consultant";
+  const [bookingInfo, setBookingInfo] = useState({
+    consultantName: "",
+    bookingDate: "",
+    bookingTime: ""
+  });
   
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
     if (!isAuthenticated) {
       navigate("/login");
     }
-  }, [navigate]);
+    
+    // Get booking info from state or localStorage
+    if (location.state?.consultantName) {
+      setBookingInfo({
+        consultantName: location.state.consultantName,
+        bookingDate: location.state.bookingDate || "",
+        bookingTime: location.state.bookingTime || ""
+      });
+    } else {
+      // Try to get from localStorage as fallback
+      const storedBooking = localStorage.getItem("consultationBooking");
+      if (storedBooking) {
+        const booking = JSON.parse(storedBooking);
+        setBookingInfo({
+          consultantName: booking.consultantName || "the consultant",
+          bookingDate: booking.date ? new Date(booking.date).toLocaleDateString() : "",
+          bookingTime: booking.slot || ""
+        });
+      } else {
+        // No booking info, redirect back to consult page
+        toast.error("No booking information found. Please select a consultant first.");
+        setTimeout(() => navigate("/consult"), 1000);
+      }
+    }
+  }, [navigate, location.state]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +56,16 @@ const ConsultationForm = () => {
       toast.error("Please fill in all fields");
       return;
     }
+    
+    // Store consultation details
+    const consultationData = {
+      consultantName: bookingInfo.consultantName,
+      bookingDate: bookingInfo.bookingDate,
+      bookingTime: bookingInfo.bookingTime,
+      goals: goals,
+      concerns: concerns
+    };
+    localStorage.setItem("consultationData", JSON.stringify(consultationData));
     
     toast.success("Consultation request sent successfully!");
     navigate("/home");
@@ -50,6 +88,16 @@ const ConsultationForm = () => {
         <Card className="max-w-2xl mx-auto animate-fade-in">
           <CardHeader>
             <CardTitle>Tell us about your fitness journey</CardTitle>
+            {(bookingInfo.bookingDate || bookingInfo.bookingTime) && (
+              <div className="text-sm text-gray-500 mt-2 flex items-center">
+                <Calendar className="h-4 w-4 mr-2" />
+                <span>
+                  Your session with <strong>{bookingInfo.consultantName}</strong> 
+                  {bookingInfo.bookingDate && ` on ${bookingInfo.bookingDate}`}
+                  {bookingInfo.bookingTime && ` at ${bookingInfo.bookingTime}`}
+                </span>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -57,7 +105,7 @@ const ConsultationForm = () => {
                 <Label htmlFor="goals">What are your fitness goals?</Label>
                 <Textarea
                   id="goals"
-                  placeholder={`Tell ${consultantName} about what you want to achieve...`}
+                  placeholder={`Tell ${bookingInfo.consultantName} about what you want to achieve...`}
                   value={goals}
                   onChange={(e) => setGoals(e.target.value)}
                   className="min-h-[100px]"

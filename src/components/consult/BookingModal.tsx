@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import TimeSlotPicker from "./TimeSlotPicker";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { format } from "date-fns";
 
 type Consultant = {
@@ -43,7 +43,25 @@ export default function BookingModal({ open, onOpenChange, consultant }: Booking
     }
     toast.success(`Session booked with ${consultant.name} on ${format(date, "PPP")} at ${slot}!`);
     onOpenChange(false);
-    setTimeout(() => navigate("/consultation-form", { state: { consultantName: consultant.name, date, slot } }), 1200);
+    
+    // Store booking info
+    const bookingInfo = {
+      consultantName: consultant.name,
+      date: date.toISOString(),
+      slot: slot
+    };
+    localStorage.setItem("consultationBooking", JSON.stringify(bookingInfo));
+    
+    // Navigate to consultation form with consultant info
+    setTimeout(() => {
+      navigate("/consultation-form", { 
+        state: { 
+          consultantName: consultant.name,
+          bookingDate: format(date, "PPP"),
+          bookingTime: slot
+        } 
+      });
+    }, 500);
   }
 
   return (
