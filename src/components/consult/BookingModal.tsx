@@ -52,6 +52,8 @@ export default function BookingModal({ open, onOpenChange, consultant }: Booking
     };
     localStorage.setItem("consultationBooking", JSON.stringify(bookingInfo));
     
+    console.log("Booking info saved:", bookingInfo);
+    
     // Navigate to consultation form with consultant info
     setTimeout(() => {
       navigate("/consultation-form", { 

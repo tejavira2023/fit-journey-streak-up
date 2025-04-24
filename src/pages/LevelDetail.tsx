@@ -4,14 +4,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle } from "lucide-react";
 import QuizComponent from "@/components/fitness/QuizComponent";
-import { useToast } from "@/hooks/use-toast";
-import { Coins } from "lucide-react";
+import { toast } from "sonner";
 
 const LevelDetail = () => {
   const { category, difficulty, levelId } = useParams();
   const navigate = useNavigate();
   const [levelCompleted, setLevelCompleted] = useState(false);
-  const { toast } = useToast();
   
   useEffect(() => {
     // Check if user is authenticated
@@ -26,6 +24,8 @@ const LevelDetail = () => {
       navigate("/fitness");
       return;
     }
+    
+    console.log("Level Detail Page Loaded:", { category, difficulty, levelId });
   }, [navigate, category, difficulty, levelId]);
 
   const handleLevelComplete = () => {
@@ -76,6 +76,8 @@ const LevelDetail = () => {
     
     // Save updated data
     localStorage.setItem("userData", JSON.stringify(userData));
+    
+    console.log("Updated user data:", userData);
     
     toast({
       title: "Level Completed!",

@@ -25,6 +25,8 @@ const ConsultationForm = () => {
       navigate("/login");
     }
     
+    console.log("Consultation form opened, location state:", location.state);
+    
     // Get booking info from state or localStorage
     if (location.state?.consultantName) {
       setBookingInfo({
@@ -36,14 +38,21 @@ const ConsultationForm = () => {
       // Try to get from localStorage as fallback
       const storedBooking = localStorage.getItem("consultationBooking");
       if (storedBooking) {
-        const booking = JSON.parse(storedBooking);
-        setBookingInfo({
-          consultantName: booking.consultantName || "the consultant",
-          bookingDate: booking.date ? new Date(booking.date).toLocaleDateString() : "",
-          bookingTime: booking.slot || ""
-        });
+        try {
+          const booking = JSON.parse(storedBooking);
+          setBookingInfo({
+            consultantName: booking.consultantName || "the consultant",
+            bookingDate: booking.date ? new Date(booking.date).toLocaleDateString() : "",
+            bookingTime: booking.slot || ""
+          });
+          console.log("Retrieved booking from localStorage:", booking);
+        } catch (error) {
+          console.error("Error parsing booking data:", error);
+          toast.error("Error loading booking information");
+        }
       } else {
         // No booking info, redirect back to consult page
+        console.warn("No booking information found");
         toast.error("No booking information found. Please select a consultant first.");
         setTimeout(() => navigate("/consult"), 1000);
       }
@@ -63,9 +72,11 @@ const ConsultationForm = () => {
       bookingDate: bookingInfo.bookingDate,
       bookingTime: bookingInfo.bookingTime,
       goals: goals,
-      concerns: concerns
+      concerns: concerns,
+      submittedAt: new Date().toISOString()
     };
     localStorage.setItem("consultationData", JSON.stringify(consultationData));
+    console.log("Consultation data saved:", consultationData);
     
     toast.success("Consultation request sent successfully!");
     navigate("/home");
@@ -105,7 +116,7 @@ const ConsultationForm = () => {
                 <Label htmlFor="goals">What are your fitness goals?</Label>
                 <Textarea
                   id="goals"
-                  placeholder={`Tell ${bookingInfo.consultantName} about what you want to achieve...`}
+                  placeholder={`Tell ${bookingInfo.consultantName || 'your consultant'} about what you want to achieve...`}
                   value={goals}
                   onChange={(e) => setGoals(e.target.value)}
                   className="min-h-[100px]"

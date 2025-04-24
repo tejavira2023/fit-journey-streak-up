@@ -26,16 +26,16 @@ const RewardCard = ({ title, description, progress, total }: RewardCardProps) =>
     // Set up an interval to check for updates
     const interval = setInterval(() => {
       const latestData = JSON.parse(localStorage.getItem("userData") || "{}");
-      if (latestData.coins !== coins) {
-        setCoins(latestData.coins || 0);
+      if (latestData.coins !== undefined) {
+        setCoins(latestData.coins);
       }
-      if (progress !== internalProgress) {
+      if (progress !== undefined) {
         setInternalProgress(progress);
       }
-    }, 2000);
+    }, 1000);
     
     return () => clearInterval(interval);
-  }, [progress, coins, internalProgress]);
+  }, [progress]);
   
   const handleClaimReward = () => {
     if (internalProgress >= total) {
@@ -45,6 +45,8 @@ const RewardCard = ({ title, description, progress, total }: RewardCardProps) =>
       
       setCoins(userData.coins);
       toast.success("You've claimed 50 coins as your reward!");
+      
+      console.log("Updated coins after reward:", userData.coins);
     }
   };
 

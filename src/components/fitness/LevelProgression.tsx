@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { CircleIcon, CheckCircle, Lock } from "lucide-react";
@@ -7,7 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { getAvatarImg } from "./levelAvatars";
 
 type LevelProgressionProps = {
@@ -48,7 +49,6 @@ const getLevels = (category: string, difficulty: string) => {
 
 const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [levels, setLevels] = useState<any[]>([]);
   const [completedLevels, setCompletedLevels] = useState<string[]>([]);
   const [lastActivityDates, setLastActivityDates] = useState<Record<string, string>>({});
@@ -61,6 +61,8 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
     setCompletedLevels(userData.completedLevels || []);
     setLastActivityDates(userData.lastActivityDates || {});
+    
+    console.log("Level Progression loaded for:", category, difficulty);
   }, [category, difficulty]);
 
   const canStartLevel = (levelId: number, category: string) => {
@@ -76,30 +78,10 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
   };
 
   const startLevel = (levelId: number) => {
-    if (!canStartLevel(levelId, category)) {
-      toast({
-        title: "Daily Exercise Limit Reached",
-        description: `You've already completed today's ${category} exercise. Try a different category or come back tomorrow!`,
-        variant: "destructive",
-      });
-      return;
-    }
+    console.log("Starting level:", levelId, "for category:", category);
     
-    // Update last activity date for this category
-    const newLastActivityDates = {
-      ...lastActivityDates,
-      [category]: new Date().toISOString()
-    };
-    
-    // Update localStorage
-    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-    userData.lastActivityDates = newLastActivityDates;
-    localStorage.setItem("userData", JSON.stringify(userData));
-    
-    setLastActivityDates(newLastActivityDates);
-    
-    // Navigate to the level
-    navigate(`/fitness/${category.toLowerCase()}/${difficulty.toLowerCase()}/level/${levelId}`);
+    // Navigate to the level directly - we'll check availability on the level page
+    navigate(`/fitness/${category}/${difficulty}/level/${levelId}`);
   };
 
   const isLevelCompleted = (levelId: number) => {
@@ -160,7 +142,8 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
                         transform hover:scale-110 transition-transform
                         border-4 border-white shadow-lg
                       `}
-                      disabled={level.locked}
+                      disabled={false} // Remove the disabled state to allow clicking
+                      onClick={() => level.id === 1 ? startLevel(level.id) : null}
                     >
                       <img
                         src={getAvatarImg(category, level.id)}
@@ -192,7 +175,6 @@ const LevelProgression = ({ category, difficulty }: LevelProgressionProps) => {
                       <Button
                         className="w-full bg-fitness-primary hover:bg-fitness-primary/90"
                         onClick={() => startLevel(level.id)}
-                        disabled={!canStartLevel(level.id, category)}
                       >
                         {isLevelCompleted(level.id) ? "Review" : "Start"}
                       </Button>

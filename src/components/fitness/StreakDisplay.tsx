@@ -13,7 +13,7 @@ const StreakDisplay = () => {
   });
 
   useEffect(() => {
-    // Get user data from localStorage
+    // Get initial user data from localStorage
     const storedUserData = localStorage.getItem("userData");
     if (storedUserData) {
       setUserData(JSON.parse(storedUserData));
@@ -24,16 +24,12 @@ const StreakDisplay = () => {
       const latestData = localStorage.getItem("userData");
       if (latestData) {
         const parsedData = JSON.parse(latestData);
-        if (parsedData.streak !== userData.streak || 
-            parsedData.coins !== userData.coins ||
-            parsedData.completedLevels?.length !== userData.completedLevels?.length) {
-          setUserData(parsedData);
-        }
+        setUserData(parsedData); // Always update with latest data
       }
-    }, 2000);
+    }, 1000); // Check more frequently
     
     return () => clearInterval(interval);
-  }, [userData.streak, userData.coins, userData.completedLevels?.length]);
+  }, []); // Remove dependency to prevent recreation of interval
 
   return (
     <Card className="w-full card-hover animate-fade-in">

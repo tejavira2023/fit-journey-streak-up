@@ -19,6 +19,8 @@ import ConsultationForm from "./pages/ConsultationForm";
 
 const queryClient = new QueryClient();
 
+console.log("App initializing with routes...");
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -54,14 +56,14 @@ const App = () => (
               <Consult />
             </ProtectedRoute>
           } />
-          <Route path="/account" element={
-            <ProtectedRoute>
-              <Account />
-            </ProtectedRoute>
-          } />
           <Route path="/consultation-form" element={
             <ProtectedRoute>
               <ConsultationForm />
+            </ProtectedRoute>
+          } />
+          <Route path="/account" element={
+            <ProtectedRoute>
+              <Account />
             </ProtectedRoute>
           } />
           <Route path="*" element={<NotFound />} />
