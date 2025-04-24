@@ -31,11 +31,8 @@ const LevelDetail = () => {
   const handleLevelComplete = () => {
     setLevelCompleted(true);
     
-    // Show notification to do quiz
-    toast({
-      title: "Workout Complete!",
-      description: "Now complete the quiz to earn your reward."
-    });
+    // Show notification to do quiz - fix: use string instead of object with title
+    toast("Workout Complete! Now complete the quiz to earn your reward.");
   };
 
   const handleQuizComplete = () => {
@@ -79,10 +76,8 @@ const LevelDetail = () => {
     
     console.log("Updated user data:", userData);
     
-    toast({
-      title: "Level Completed!",
-      description: "You've earned 10 coins for completing this level.",
-    });
+    // Fix: use string instead of object with title
+    toast("Level Completed! You've earned 10 coins for completing this level.");
     
     // Navigate back to category page after delay
     setTimeout(() => {
